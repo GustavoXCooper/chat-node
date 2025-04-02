@@ -92,3 +92,11 @@ ul, li {
     outline: 0;
     border: 0;
 }
+
+.warning {
+    color: #FF0000;
+    font-weight: bold;
+    font-size: 20px;
+    padding: 10px;
+    display: none;
+}
