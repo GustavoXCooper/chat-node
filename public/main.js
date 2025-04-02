@@ -1,12 +1,14 @@
 const socket = io();
 let username = '';
 let userList = [];
+let serverUsers = [];
 
 let loginPage = document.querySelector('#loginPage');
 let chatPage = document.querySelector('#chatPage');
 
 let loginInput = document.querySelector('#loginNameInput');
 let textInput = document.querySelector('#chatTextInput');
+let warning = document.querySelector('.warning');
 
 loginPage.style.display = 'flex';
 chatPage.style.display = 'none';
@@ -42,10 +44,13 @@ const renderUserList = () => {
 loginInput.addEventListener('keyup', (e) => {
     if (e.keyCode === 13) {
         let name = loginInput.value.trim();
-        if (name != '') {
+        if (validateUsername(name)) {
             username = name;
             document.title = 'Chat (' + username + ')';
             socket.emit('join-request', username);
+        } else {
+            warning.style.display = 'flex';
+            warning.innerHTML = 'Nome de usuáro inválido.';
         }
     }
 });
@@ -81,7 +86,7 @@ socket.on('list-update', (data) => {
     if (data.left) {
         addMessage('status', null, data.left + ' saiu do chat');
     }
-
+    console.log('userList: ', userList);
     userList = data.list;
     renderUserList();
 });
@@ -98,11 +103,23 @@ socket.on('disconnect', () => {
 
 socket.on('connect_error', () => {
     addMessage('status', null, 'Tentando reconectar');
-    console.log('pegou')
 });
 
 socket.on('connect', () => {
-    if (username != '') {
+    socket.emit('server-user-list');
+    if (validateUsername(username)) {
         socket.emit('join-request', username);
-    }
+    };
 });
+
+socket.on('update-client-list', async (connectedUsers) => {
+    serverUsers = connectedUsers;
+})
+
+const validateUsername = (username) => {
+    const users = serverUsers;
+    if (users.includes(username) || username == '') {
+        return false;
+    }
+    return true;
+}

@@ -14,13 +14,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 let connectedUsers = [];
 
 io.on('connection', (socket) => {
-    console.log('conectado');
+    socket.on('server-user-list', () => {
+        socket.emit('update-client-list', connectedUsers);
+    }); 
 
     socket.on('join-request', (username) => {
         socket.username = username;
         connectedUsers.push(username);
-        console.log(connectedUsers);
-
         socket.emit('user-ok', connectedUsers);
         socket.broadcast.emit('list-update', {
             joined: username,
@@ -30,7 +30,6 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         connectedUsers = connectedUsers.filter(user => user != socket.username);
-        console.log(connectedUsers);
 
         socket.broadcast.emit('list-update', {
             left: socket.username,
